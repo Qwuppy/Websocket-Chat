@@ -1,10 +1,13 @@
 'use client'
 
+import { ChatList } from "@/widgets/chatList"
+import { ChatWindow } from "@/widgets/chatWindow"
+
 export const ChatPage = () => {
   return (
     <div>
-      <h1>Чат</h1>
-      {/* Тут будет твой чат */}
+      <ChatList />
+      <ChatWindow />
     </div>
   )
 }
