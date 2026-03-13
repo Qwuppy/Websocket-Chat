@@ -4,16 +4,16 @@ import { loginSchema } from "../../model/validation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useRouter } from "next/navigation";
 import { useAppDispatch } from "@/shared/lib/hooks/redux";
-import { authApi } from "../../api/authApi";
+import { useLoginMutation } from "../../api/authApi";
 import { setAuth } from "../../model/authSlice";
-import React from "react";
+import { tokenStorage } from "@/shared/lib/auth/tokenStorage";
 
 
 export const LoginForm = () => {
 
     const dispatch = useAppDispatch();
     const router = useRouter();
-    const [loginUser] = authApi.useLoginMutation();
+    const [loginUser] = useLoginMutation();
 
     const {
         register,
@@ -22,27 +22,28 @@ export const LoginForm = () => {
     } = useForm<LoginFormValues>({
         resolver: zodResolver(loginSchema),
     })
-
-    const handleLogin = async (email: string, password: string) => {
-        try {
-            const response = await loginUser({ companyName: 'NoCompany', userName: email, email, password }).unwrap();
-            dispatch(setAuth({ token: response.token, user: response.user }));
-            router.replace('/chat');
-        } catch (error: any) {
-            alert(error.message || 'Ошибка логина')
-        }
-    }
     
     const onSubmit = async (data: LoginFormValues) => {
+        try {
+            const response = await loginUser(data).unwrap();
+            dispatch(setAuth({ token: response.access_token, userName: data.email }));
+            tokenStorage.saveSession(data.email, response.access_token);
+            router.replace('/chat');
+        } catch (error: any) {
 
-        handleLogin(data.email, data.password);
+            const message = 
+                (error as any)?.data?.message || // если сервер вернул объект с message
+                (error as any)?.error ||         // если RTK Query error.error содержит строку
+                'Ошибка логина';                 // fallback
 
+            alert(message)
+        }
     }
 
     return (
         <form onSubmit={handleSubmit(onSubmit)}>
             <div>
-                <input placeholder="Email" {...register("email")} />
+                <input placeholder="Email" {...register("email")} type="email"/>
                 {errors.email && <p>{errors.email.message}</p>}
             </div>
 
