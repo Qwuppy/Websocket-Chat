@@ -1,18 +1,19 @@
-import { User } from '@/entities/user/model/types'
+import { baseQueryWithReauth } from '@/shared/api/baseQueryWithReauth';
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { AuthResponse } from '../model/types';
 
 // Типы запросов
-interface AuthResponse { token: string; user: User }
-interface RequestToServer { companyName: string; userName: string; email: string; password: string; }
+interface RequestToLogin { email: string; password: string; }
+interface RequestToRegister { companyName: string; userName: string; email: string; password: string; }
 
 export const authApi = createApi({
-    reducerPath: 'authApi',
-    baseQuery: fetchBaseQuery({ baseUrl: 'https://cafe-admin-api-production.up.railway.app/auth' }),
+    reducerPath: "authApi",
+    baseQuery: baseQueryWithReauth,
     endpoints: (builder) => ({
-        login: builder.mutation<AuthResponse, RequestToServer>({
+        login: builder.mutation<AuthResponse, RequestToLogin>({
             query: (body) => ({ url: '/sign-in', method: 'POST', body }),
         }),
-        register: builder.mutation<AuthResponse, RequestToServer>({
+        register: builder.mutation<AuthResponse, RequestToRegister>({
             query: (body) => ({ url: '/sign-up', method: 'POST', body }),
         }),
         refreshToken: builder.mutation<AuthResponse, void>({

@@ -1,28 +1,27 @@
-import { User } from "@/entities/user/model/types";
-import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { authApi } from '../api/authApi'
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { tokenStorage } from "@/shared/lib/auth/tokenStorage";
 
 interface AuthState {
-    user: User | null
+    userName: string | null
     token: string | null
 }
 
 const initialState: AuthState = {
-    user: null,
-    token: null,
+    userName: null,
+    token: tokenStorage.getActiveToken(),
 }
 
 export const authSlice = createSlice({
     name: 'auth',
     initialState,
     reducers: {
-        setAuth: (state, action: PayloadAction<{ token: string; user: User }>) => {
+        setAuth: (state, action: PayloadAction<{ token: string; userName: string }>) => {
             state.token = action.payload.token
-            state.user = action.payload.user
+            state.userName = action.payload.userName
         },
         logout: (state) => {
             state.token = null
-            state.user = null
+            state.userName = null
         },
     },
 })
