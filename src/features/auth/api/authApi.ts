@@ -1,25 +1,37 @@
-import { baseQueryWithReauth } from '@/shared/api/baseQueryWithReauth';
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createApi, fakeBaseQuery } from '@reduxjs/toolkit/query/react';
+import { supabase } from '@/shared/lib/server/supabaseClient';
 import { AuthResponse } from '../model/types';
 
 // Типы запросов
 interface RequestToLogin { email: string; password: string; }
-interface RequestToRegister { companyName: string; userName: string; email: string; password: string; }
+interface RequestToRegister { email: string; password: string; }
 
 export const authApi = createApi({
     reducerPath: "authApi",
-    baseQuery: baseQueryWithReauth,
+    baseQuery: fakeBaseQuery(),
     endpoints: (builder) => ({
         login: builder.mutation<AuthResponse, RequestToLogin>({
-            query: (body) => ({ url: '/sign-in', method: 'POST', body }),
+            async queryFn({ email, password }) {
+                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                if (error) return { error: { status: 'CUSTOM_ERROR', data: error.message } };
+                return { data: { access_token: data.session?.access_token || '', user: data.user } as AuthResponse };
+            }
         }),
         register: builder.mutation<AuthResponse, RequestToRegister>({
-            query: (body) => ({ url: '/sign-up', method: 'POST', body }),
+            async queryFn({ email, password }) {
+                const { data, error } = await supabase.auth.signUp({ email, password });
+                if (error) return { error: { status: 'CUSTOM_ERROR', data: error.message } };
+                return { data: { access_token: data.session?.access_token || '', user: data.user } as AuthResponse };
+            }
         }),
-        refreshToken: builder.mutation<AuthResponse, void>({
-            query: () => ({ url: '/refresh', method: 'GET' }),
+        logout: builder.mutation<void, void>({
+            async queryFn() {
+                const { error } = await supabase.auth.signOut();
+                if (error) return { error: { status: 'CUSTOM_ERROR', data: error.message } };
+                return { data: undefined };
+            }
         }),
-    }),
-})
+    })
+});
 
-export const { useLoginMutation, useRegisterMutation, useRefreshTokenMutation } = authApi
+export const { useLoginMutation, useRegisterMutation, useLogoutMutation } = authApi;

@@ -1,13 +1,10 @@
 import { useForm } from "react-hook-form"
 import { RegisterFormValues } from "../../model/types"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { registerSchema } from "../../model/validation"
 import { useRouter } from "next/navigation";
 import { useAppDispatch } from "@/shared/lib/hooks/redux";
 import { useRegisterMutation } from "../../api/authApi";
 import { setAuth } from "../../model/authSlice";
-import { tokenStorage } from "@/shared/lib/auth/tokenStorage";
-
 
 export const RegisterForm = () => {
 
@@ -15,43 +12,34 @@ export const RegisterForm = () => {
     const router = useRouter();
     const [registerUser] = useRegisterMutation();
 
-    const {
-        register,
-        handleSubmit,
-        formState: { errors },
-    } = useForm<RegisterFormValues>({
-        resolver: zodResolver(registerSchema),
-    })
-
-    const handleLogin = async (email: string, password: string) => {
-        try {
-            const response = await registerUser({ companyName: 'NoCompany', userName: email, email, password }).unwrap();
-            dispatch(setAuth({ token: response.access_token, userName: email }));
-            router.replace('/chat');
-        } catch (error: any) {
-            alert(error.message || 'Ошибка регистрации')
-        }
-    }
+    const { register, handleSubmit, formState: { errors } } = useForm<RegisterFormValues>({
+        resolver: zodResolver(require('../../model/validation').registerSchema),
+    });
 
     const onSubmit = async (data: RegisterFormValues) => {
-
         try {
-            const response = await registerUser({ companyName: 'NoCompany', userName: data.email, email: data.email, password: data.password }).unwrap();
-            dispatch(setAuth({ token: response.access_token, userName: data.email }));
-            tokenStorage.saveSession(data.email, response.access_token);
+            // 🔹 Регистрируем через RTK Query, Supabase внутри возвращает JWT
+            const response = await registerUser({
+                email: data.email,
+                password: data.password
+            }).unwrap();
+
+            if (!response.access_token) throw new Error('Не удалось получить токен после регистрации');
+
+            // 🔹 Сохраняем токен и email в Redux
+            dispatch(setAuth({
+                token: response.access_token,
+                userName: data.email
+            }));
+
+            // 🔹 Переходим на чат
             router.replace('/chat');
+
         } catch (error: any) {
-            const message = 
-                (error as any)?.data?.message || // если сервер вернул объект с message
-                (error as any)?.error ||         // если RTK Query error.error содержит строку
-                'Ошибка регистрации';            // fallback
-
-            alert(message)
+            const message = error.data?.message || error.message || 'Ошибка регистрации';
+            alert(message);
         }
-
-
-        handleLogin(data.email, data.password);
-    }
+    };
 
     return (
         <form onSubmit={handleSubmit(onSubmit)}>

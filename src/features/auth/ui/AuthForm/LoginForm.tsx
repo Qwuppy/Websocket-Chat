@@ -1,12 +1,10 @@
 import { useForm } from "react-hook-form"
 import { LoginFormValues } from "../../model/types"
-import { loginSchema } from "../../model/validation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useRouter } from "next/navigation";
 import { useAppDispatch } from "@/shared/lib/hooks/redux";
 import { useLoginMutation } from "../../api/authApi";
 import { setAuth } from "../../model/authSlice";
-import { tokenStorage } from "@/shared/lib/auth/tokenStorage";
 
 
 export const LoginForm = () => {
@@ -15,30 +13,26 @@ export const LoginForm = () => {
     const router = useRouter();
     const [loginUser] = useLoginMutation();
 
-    const {
-        register,
-        handleSubmit,
-        formState: { errors },
+    const { 
+        register, 
+        handleSubmit, 
+        formState: { errors } 
     } = useForm<LoginFormValues>({
-        resolver: zodResolver(loginSchema),
-    })
-    
+        resolver: zodResolver(require('../../model/validation').loginSchema),
+    });
+
     const onSubmit = async (data: LoginFormValues) => {
         try {
             const response = await loginUser(data).unwrap();
+
+            if (!response.access_token) throw new Error('Нет токена после login');
+
             dispatch(setAuth({ token: response.access_token, userName: data.email }));
-            tokenStorage.saveSession(data.email, response.access_token);
             router.replace('/chat');
         } catch (error: any) {
-
-            const message = 
-                (error as any)?.data?.message || // если сервер вернул объект с message
-                (error as any)?.error ||         // если RTK Query error.error содержит строку
-                'Ошибка логина';                 // fallback
-
-            alert(message)
+            alert(error.data || 'Ошибка логина');
         }
-    }
+    };
 
     return (
         <form onSubmit={handleSubmit(onSubmit)}>

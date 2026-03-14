@@ -21,13 +21,13 @@ export const AuthForm = () => {
 
     return (
         <div>
-        {mode === "login" ? <LoginForm /> : <RegisterForm />}
-        
-        <button type="button" onClick={toggleMode}>
-            {mode === "login"
-            ? "No account? Register"
-            : "Already have account? Login"}
-        </button>
+            {mode === "login" ? <LoginForm /> : <RegisterForm />}
+            
+            <button type="button" onClick={toggleMode}>
+                {mode === "login"
+                ? "No account? Register"
+                : "Already have account? Login"}
+            </button>
         </div>
     )
 
