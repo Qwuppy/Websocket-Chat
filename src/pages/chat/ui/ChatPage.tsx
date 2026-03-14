@@ -1,13 +1,17 @@
 'use client'
 
+import { AuthProvider } from "@/app/providers/AuthProvider"
 import { ChatList } from "@/widgets/chatList"
 import { ChatWindow } from "@/widgets/chatWindow"
 
 export const ChatPage = () => {
+
   return (
-    <div>
-      <ChatList />
-      <ChatWindow />
-    </div>
+    <AuthProvider>
+      <div>
+        <ChatList />
+        <ChatWindow />
+      </div>
+    </AuthProvider>
   )
 }
