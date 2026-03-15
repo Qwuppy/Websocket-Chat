@@ -3,21 +3,20 @@ import { supabase } from '@/shared/lib/server/supabaseClient';
 import { AuthResponse } from '../model/types';
 
 // Типы запросов
-interface RequestToLogin { email: string; password: string; }
-interface RequestToRegister { email: string; password: string; }
+interface AuthCredentials { email: string; password: string; }
 
 export const authApi = createApi({
     reducerPath: "authApi",
     baseQuery: fakeBaseQuery(),
     endpoints: (builder) => ({
-        login: builder.mutation<AuthResponse, RequestToLogin>({
+        login: builder.mutation<AuthResponse, AuthCredentials>({
             async queryFn({ email, password }) {
                 const { data, error } = await supabase.auth.signInWithPassword({ email, password });
                 if (error) return { error: { status: 'CUSTOM_ERROR', data: error.message } };
                 return { data: { access_token: data.session?.access_token || '', user: data.user } as AuthResponse };
             }
         }),
-        register: builder.mutation<AuthResponse, RequestToRegister>({
+        register: builder.mutation<AuthResponse, AuthCredentials>({
             async queryFn({ email, password }) {
                 const { data, error } = await supabase.auth.signUp({ email, password });
                 if (error) return { error: { status: 'CUSTOM_ERROR', data: error.message } };

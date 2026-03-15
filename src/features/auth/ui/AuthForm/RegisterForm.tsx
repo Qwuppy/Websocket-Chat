@@ -1,43 +1,41 @@
-import { useForm } from "react-hook-form"
-import { RegisterFormValues } from "../../model/types"
-import { zodResolver } from "@hookform/resolvers/zod"
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { useAppDispatch } from "@/shared/lib/hooks/redux";
 import { useRegisterMutation } from "../../api/authApi";
-import { setAuth } from "../../model/authSlice";
+import { RegisterFormValues } from "../../model/types";
+import { registerSchema } from "../../model/validation";
 
 export const RegisterForm = () => {
-
-    const dispatch = useAppDispatch();
     const router = useRouter();
-    const [registerUser] = useRegisterMutation();
+    const [registerUser, { isLoading }] = useRegisterMutation();
+    const [errorMsg, setErrorMsg] = useState('');
 
     const { register, handleSubmit, formState: { errors } } = useForm<RegisterFormValues>({
-        resolver: zodResolver(require('../../model/validation').registerSchema),
+        resolver: zodResolver(registerSchema),
     });
 
     const onSubmit = async (data: RegisterFormValues) => {
+        setErrorMsg('');
         try {
-            // 🔹 Регистрируем через RTK Query, Supabase внутри возвращает JWT
             const response = await registerUser({
                 email: data.email,
-                password: data.password
+                password: data.password,
             }).unwrap();
 
-            if (!response.access_token) throw new Error('Не удалось получить токен после регистрации');
+            // Если email-подтверждение включено в Supabase — токена не будет.
+            // AuthProvider сам обработает сессию через onAuthStateChange после редиректа.
+            if (!response.access_token) {
+                // Сообщаем пользователю что нужно подтвердить email
+                setErrorMsg('Проверьте почту и подтвердите email для входа');
+                return;
+            }
 
-            // 🔹 Сохраняем токен и email в Redux
-            dispatch(setAuth({
-                token: response.access_token,
-                userName: data.email
-            }));
-
-            // 🔹 Переходим на чат
+            // Токен есть — редиректим, AuthProvider подхватит сессию сам
             router.replace('/chat');
 
         } catch (error: any) {
-            const message = error.data?.message || error.message || 'Ошибка регистрации';
-            alert(message);
+            setErrorMsg(error.data || error.message || 'Ошибка регистрации');
         }
     };
 
@@ -56,8 +54,12 @@ export const RegisterForm = () => {
                 {errors.confirmPassword && <p>{errors.confirmPassword.message}</p>}
             </div>
 
-            <button type="submit">Register</button>
-        </form>
-    )
+            {/* Ошибки через state, не через alert */}
+            {errorMsg && <p style={{ color: 'red' }}>{errorMsg}</p>}
 
-}
+            <button type="submit" disabled={isLoading}>
+                {isLoading ? 'Регистрируем...' : 'Register'}
+            </button>
+        </form>
+    );
+};
