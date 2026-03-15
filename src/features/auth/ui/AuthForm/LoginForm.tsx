@@ -2,23 +2,24 @@ import { useForm } from "react-hook-form"
 import { LoginFormValues } from "../../model/types"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useRouter } from "next/navigation";
-import { useAppDispatch } from "@/shared/lib/hooks/redux";
 import { useLoginMutation } from "../../api/authApi";
-import { setAuth } from "../../model/authSlice";
+import { loginSchema } from "../../model/validation";
+import { useState } from "react";
 
 
 export const LoginForm = () => {
 
-    const dispatch = useAppDispatch();
     const router = useRouter();
-    const [loginUser] = useLoginMutation();
+    const [loginUser, { isLoading }] = useLoginMutation();
+
+    const [errorMsg, setErrorMsg] = useState('');
 
     const { 
         register, 
         handleSubmit, 
         formState: { errors } 
     } = useForm<LoginFormValues>({
-        resolver: zodResolver(require('../../model/validation').loginSchema),
+        resolver: zodResolver(loginSchema),
     });
 
     const onSubmit = async (data: LoginFormValues) => {
@@ -27,11 +28,9 @@ export const LoginForm = () => {
 
             if (!response.access_token) throw new Error('Нет токена после login');
 
-            dispatch(setAuth({ token: response.access_token, userName: data.email }));
             router.replace('/chat');
-        } catch (error: any) {
-            alert(error.data || 'Ошибка логина');
-        }
+        } catch (error: any) { setErrorMsg(error.data || 'Ошибка логина') }
+
     };
 
     return (
@@ -46,7 +45,10 @@ export const LoginForm = () => {
                 {errors.password && <p>{errors.password.message}</p>}
             </div>
 
-            <button type="submit">Login</button>
+            <button type="submit" disabled={isLoading}>
+                {isLoading ? 'Входим...' : 'Login'}
+            </button>
+            {errorMsg && <p style={{ color: 'red' }}>{errorMsg}</p>}
         </form>
     )
 
