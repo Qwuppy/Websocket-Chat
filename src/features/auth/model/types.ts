@@ -6,4 +6,5 @@ export type RegisterFormValues = z.infer<typeof registerSchema>
 
 export interface AuthResponse {
     access_token: string;
+    user?: { email?: string } | null;
 }
