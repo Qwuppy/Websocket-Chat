@@ -1,1 +1,6 @@
-export { ChatPage as default } from '@/pages/chat'
+import ChatPageClient from "./ChatPageClient";
+
+
+export default function Page() {
+  return <ChatPageClient />
+}

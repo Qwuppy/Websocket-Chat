@@ -11,28 +11,33 @@ import {
 import SendIcon from "@mui/icons-material/Send";
 import { useRealtimeMessages } from "@/entities/messages/model/hooks/useRealtimeMessages";
 import { useSendMessageMutation } from "@/entities/messages/api/messagesApi";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/app/providers/store";
 import { Message } from "@/entities/messages/model/types";
-
-const MOCK_TARGET_EMAIL = 'qwupgame1@gmail.com'; // email собеседника (можно заменить на динамический, если нужно)
+import { chatApi, useFindOrCreateChatMutation } from "@/entities/chat/api/chatApi";
+import { setActiveChat } from "@/entities/chat/model/chatSlice";
 
 interface ChatWindowProps {
     targetEmail?: string; // email собеседника (можно заменить на динамический, если нужно)
+    chatId: string;
 }
 
-export const ChatWindow = ({ targetEmail }: ChatWindowProps) => {
+export const ChatWindow = ({ targetEmail, chatId }: ChatWindowProps) => {
+
+    const dispatch = useDispatch();
+
     const [inputText, setInputText] = useState<string>("");
     const containerRef = useRef<HTMLDivElement>(null);
 
-    const resolvedTargetEmail = targetEmail ?? MOCK_TARGET_EMAIL;
+    const resolvedTargetEmail = targetEmail ?? '';
 
     const currentUserEmail = useSelector((state: RootState) => state.auth.userName);
+    const pendingPartnerEmail = useSelector((state: RootState) => state.chat.pendingPartnerEmail);
+    const [findOrCreateChat] = useFindOrCreateChatMutation();
 
-    const messages = useRealtimeMessages(resolvedTargetEmail);
+    const messages = useRealtimeMessages(chatId);
 
     const [sendMessage, {isLoading: isSending}] = useSendMessageMutation();
-
 
     const handleSendMessage = async () => {
         const trimmed = inputText.trim();
@@ -45,12 +50,33 @@ export const ChatWindow = ({ targetEmail }: ChatWindowProps) => {
 
         if (!trimmed || !currentUserEmail || isSending) return; 
 
-        await sendMessage({ 
-            content: trimmed, 
-            receiverEmail: resolvedTargetEmail 
-        });
+        let resolvedChatId = chatId;
+        let resolvedPartnerEmail = targetEmail;
 
-        setInputText("");
+          // Если чат ещё не создан — создаём при первой отправке
+        if (!resolvedChatId && pendingPartnerEmail) {
+            const result = await findOrCreateChat({ partnerEmail: pendingPartnerEmail });
+            if ('error' in result) return;
+
+            resolvedChatId = result.data.id;
+            resolvedPartnerEmail = pendingPartnerEmail;
+
+            dispatch(setActiveChat({
+                chatId: resolvedChatId,
+                partnerEmail: resolvedPartnerEmail,
+            }));
+        }
+
+        if (!resolvedChatId || !resolvedPartnerEmail) return;
+
+        await sendMessage({
+            content: trimmed,
+            receiverEmail: resolvedPartnerEmail,
+            chatId: resolvedChatId,
+        });
+        
+        dispatch(chatApi.util.invalidateTags(['Chat'])); 
+        setInputText('');
     }
 
     // Отправка по Enter (без Shift)

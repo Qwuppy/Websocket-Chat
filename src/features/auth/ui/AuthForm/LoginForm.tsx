@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useLoginMutation } from "../../api/authApi";
 import { loginSchema } from "../../model/validation";
 import { useState } from "react";
+import { Button, Stack, TextField } from "@mui/material";
+import { adp } from "@/shared/lib/utils/adaptiveDesktop";
 
 
 export const LoginForm = () => {
@@ -35,20 +37,39 @@ export const LoginForm = () => {
 
     return (
         <form onSubmit={handleSubmit(onSubmit)}>
-            <div>
-                <input placeholder="Email" {...register("email")} type="email"/>
-                {errors.email && <p>{errors.email.message}</p>}
-            </div>
-
-            <div>
-                <input type="password" placeholder="Password" {...register("password")} />
-                {errors.password && <p>{errors.password.message}</p>}
-            </div>
-
-            <button type="submit" disabled={isLoading}>
-                {isLoading ? 'Входим...' : 'Login'}
-            </button>
-            {errorMsg && <p style={{ color: 'red' }}>{errorMsg}</p>}
+            <Stack
+                direction='column'
+                spacing={adp(10)}
+            >
+                <TextField 
+                    id="login-email" 
+                    label='Email' 
+                    variant='outlined' 
+                    {...register("email")} 
+                    type="email"
+                    sx={{
+                        width: adp(360),
+                    }}
+                    error={!!errors.email}
+                    helperText={errors.email?.message}
+                />
+                <TextField 
+                    id="login-password" 
+                    label='Password' 
+                    variant='outlined' 
+                    type="password" 
+                    {...register("password")}
+                    sx={{
+                        width: adp(360),
+                    }}
+                    error={!!errors.password}
+                    helperText={errors.password?.message}
+                />
+                <Button variant="contained" disabled={isLoading} type="submit">
+                    {isLoading ? 'Входим...' : 'Login'}
+                </Button>
+                {errorMsg && <p style={{ color: 'red' }}>{errorMsg}</p>}
+            </Stack>
         </form>
     )
 
