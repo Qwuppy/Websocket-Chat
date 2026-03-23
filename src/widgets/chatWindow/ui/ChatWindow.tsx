@@ -16,6 +16,8 @@ import { RootState } from "@/app/providers/store";
 import { Message } from "@/entities/messages/model/types";
 import { chatApi, useFindOrCreateChatMutation } from "@/entities/chat/api/chatApi";
 import { setActiveChat } from "@/entities/chat/model/chatSlice";
+import { adp } from "@/shared/lib/utils/adaptiveDesktop";
+import { useTranslation } from "react-i18next";
 
 interface ChatWindowProps {
     targetEmail?: string; // email собеседника (можно заменить на динамический, если нужно)
@@ -29,8 +31,6 @@ export const ChatWindow = ({ targetEmail, chatId }: ChatWindowProps) => {
     const [inputText, setInputText] = useState<string>("");
     const containerRef = useRef<HTMLDivElement>(null);
 
-    const resolvedTargetEmail = targetEmail ?? '';
-
     const currentUserEmail = useSelector((state: RootState) => state.auth.userName);
     const pendingPartnerEmail = useSelector((state: RootState) => state.chat.pendingPartnerEmail);
     const [findOrCreateChat] = useFindOrCreateChatMutation();
@@ -38,6 +38,8 @@ export const ChatWindow = ({ targetEmail, chatId }: ChatWindowProps) => {
     const messages = useRealtimeMessages(chatId);
 
     const [sendMessage, {isLoading: isSending}] = useSendMessageMutation();
+
+    const { t } = useTranslation();
 
     const handleSendMessage = async () => {
         const trimmed = inputText.trim();
@@ -98,14 +100,11 @@ export const ChatWindow = ({ targetEmail, chatId }: ChatWindowProps) => {
     return (
         <Box
             sx={{
-                maxWidth: 600,
-                margin: "0 auto",
-                height: "80vh",
+                flex: 1,
                 display: "flex",
                 flexDirection: "column",
-                border: "1px solid #ccc",
-                borderRadius: 2,
-                backgroundColor: "#f5f5f5",
+                borderRadius: adp(4),
+                backgroundColor: "#262424",
             }}
         >
             {/* Список сообщений  */}
@@ -114,10 +113,10 @@ export const ChatWindow = ({ targetEmail, chatId }: ChatWindowProps) => {
                 sx={{
                     flex: 1,
                     overflowY: "auto",
-                    p: 2,
+                    p: adp(20),
                     display: "flex",
                     flexDirection: "column",
-                    gap: 1,
+                    gap: adp(5),
                 }}
             >
                 {messages.map((msg: Message) => {
@@ -137,13 +136,13 @@ export const ChatWindow = ({ targetEmail, chatId }: ChatWindowProps) => {
                             <Paper
                                 elevation={2}
                                 sx={{
-                                    p: 1.5,
+                                    p: adp(10),
                                     maxWidth: "70%",
                                     backgroundColor: isOwnMessage
                                         ? "#1976d2"
-                                        : "#fff",
+                                        : "rgba(48, 182, 206, 1)",
                                     color: isOwnMessage ? "#fff" : "#000",
-                                    borderRadius: 2,
+                                    borderRadius: adp(8),
                                     wordBreak: "break-word",
                                 }}
                             >
@@ -155,7 +154,7 @@ export const ChatWindow = ({ targetEmail, chatId }: ChatWindowProps) => {
                                     sx={{
                                         display: "block",
                                         textAlign: "right",
-                                        mt: 0.5,
+                                        mt: adp(3),
                                         opacity: 0.75,
                                     }}
                                 >
@@ -176,19 +175,47 @@ export const ChatWindow = ({ targetEmail, chatId }: ChatWindowProps) => {
                     display: "flex",
                     p: 1,
                     gap: 1,
-                    borderTop: "1px solid #ccc",
+                    borderTop: "1px solid rgba(73, 73, 73, 1)",
                     alignItems: "center",
                 }}
             >
                 <TextField
                     variant="outlined"
-                    placeholder="Введите сообщение..."
+                    placeholder={t('chat.typeMessage')}
                     fullWidth
                     size="small"
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}
                     onKeyDown={handleKeyDown}
                     disabled={isSending}
+                    sx={{
+                        '& .MuiOutlinedInput-root': {
+                            color: '#d4d4d4ff',
+                            '& fieldset': {
+                                borderColor: '#414040ff',
+                            },
+                            '&:hover fieldset': {
+                                borderColor: 'rgba(53, 77, 97, 1)',
+                            },
+                            '&.Mui-focused fieldset': {
+                                borderColor: 'rgba(32, 88, 145, 1)',
+                            },
+                            backgroundColor: '#262424',         // фон всегда
+                            '&.Mui-focused': {
+                                backgroundColor: '#262424',     // фон при фокусе (когда пишешь)
+                            },
+                            '& input:-webkit-autofill': {         //автозаполнение
+                                WebkitBoxShadow: '0 0 0 100px #262424 inset',  
+                                WebkitTextFillColor: '#d4d4d4ff',                  
+                            },
+                        },
+                        '& .MuiInputLabel-root': {
+                                color: '#bdbdbda9',      // обычное состояние
+                            '&.Mui-focused': {
+                                color: '#d4d4d4ff',      // при фокусе
+                            },
+                        },
+                    }}
                 />
                 <IconButton
                     color="primary"
@@ -198,7 +225,9 @@ export const ChatWindow = ({ targetEmail, chatId }: ChatWindowProps) => {
                     {isSending ? (
                         <CircularProgress size={20} />
                     ) : (
-                        <SendIcon />
+                        <SendIcon 
+                            sx={{ color: '#d4d4d485'}}
+                        />
                     )}
                 </IconButton>
             </Box>

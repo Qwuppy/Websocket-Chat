@@ -6,11 +6,14 @@ import { ChatWindow } from "@/widgets/chatWindow"
 import { Stack, Typography } from "@mui/material"
 import { RootState } from '@/app/providers/store'
 import { useAppSelector } from "@/shared/lib/hooks/redux"
+import { useTranslation } from "react-i18next"
 
 export const ChatPage = () => {
   const activeChatId = useAppSelector((state: RootState) => state.chat.activeChatId)
   const activePartnerEmail = useAppSelector((state: RootState) => state.chat.activePartnerEmail)
   const pendingPartnerEmail = useAppSelector((state: RootState) => state.chat.pendingPartnerEmail);
+
+  const { t } = useTranslation();
 
   return (
     <AuthProvider>
@@ -30,7 +33,7 @@ export const ChatPage = () => {
           />
         ) : (
           <Stack flex={1} alignItems='center' justifyContent='center'>
-            <Typography color='grey.600'>Выберите диалог</Typography>
+            <Typography color='#d4d4d4ff'>{t('chat.chooseChat')}</Typography>
           </Stack>
         )}
       </Stack>

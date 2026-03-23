@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Box, TextField } from '@mui/material';import { setPendingChat } from '@/entities/chat/model/chatSlice';
 import { useAppDispatch } from '@/shared/lib/hooks/redux';
+import { useTranslation } from 'react-i18next';
 
 
 interface ChatSearchProps {
@@ -15,6 +16,8 @@ export const ChatSearch = ({ onSuccess }: ChatSearchProps) => {
 
     const [isActive, setIsActive] = useState<boolean>(false);
     const containerRef = useRef<HTMLDivElement>(null);
+
+    const { t } = useTranslation();
 
     useEffect(() => {
 
@@ -53,17 +56,34 @@ export const ChatSearch = ({ onSuccess }: ChatSearchProps) => {
             <TextField
                 fullWidth
                 size="small"
-                placeholder={isActive ? 'Email собеседника...' : 'Новый диалог...'}
+                placeholder={isActive ? t('chat.searchEmail') : t('chat.search')}
                 value={email}
                 onClick={() => setIsActive(true)}
                 onChange={(e) => { setEmail(e.target.value); setError(''); }}
                 onKeyDown={handleKeyDown}
                 error={!!error}
-                helperText={isActive ? (error || 'Enter — найти, Esc — отмена') : undefined}
+                helperText={isActive ? (error || t('chat.searchHelper')) : undefined}
                 sx={{
                     '& .MuiOutlinedInput-root': {
-                        color: 'white',
                         cursor: isActive ? 'text' : 'pointer',
+                        color: '#d4d4d4ff',
+                        '& fieldset': {
+                            borderColor: '#414040ff',
+                        },
+                        '&:hover fieldset': {
+                            borderColor: 'rgba(53, 77, 97, 1)',
+                        },
+                        '&.Mui-focused fieldset': {
+                            borderColor: 'rgba(32, 88, 145, 1)',
+                        },
+                        backgroundColor: '#262424',         // фон всегда
+                        '&.Mui-focused': {
+                            backgroundColor: '#262424',       // фон при фокусе (когда пишешь)
+                        },
+                        '& input:-webkit-autofill': {           //автозаполнение
+                            WebkitBoxShadow: '0 0 0 100px #262424 inset',  
+                            WebkitTextFillColor: '#d4d4d4ff',                  
+                        },
                     },
                     '& .MuiOutlinedInput-notchedOutline': {
                         borderColor: isActive ? '#1976d2' : '#3a3a3a',
@@ -71,6 +91,12 @@ export const ChatSearch = ({ onSuccess }: ChatSearchProps) => {
                     },
                     '& .MuiFormHelperText-root': {
                         color: error ? 'error.main' : 'grey.500',
+                    },
+                    '& .MuiInputLabel-root': {
+                            color: '#bdbdbda9',
+                        '&.Mui-focused': {
+                            color: '#d4d4d4ff',
+                        },
                     },
                 }}
                 InputProps={{ readOnly: !isActive }}

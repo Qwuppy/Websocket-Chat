@@ -7,6 +7,7 @@ import { RegisterFormValues } from "../../model/types";
 import { registerSchema } from "../../model/validation";
 import { Alert, Button, Stack, TextField } from "@mui/material";
 import { adp } from "@/shared/lib/utils/adaptiveDesktop";
+import { useTranslation } from "react-i18next";
 
 export const RegisterForm = () => {
     const router = useRouter();
@@ -16,6 +17,8 @@ export const RegisterForm = () => {
     const { register, handleSubmit, formState: { errors } } = useForm<RegisterFormValues>({
         resolver: zodResolver(registerSchema),
     });
+
+    const { t } = useTranslation();
 
     const onSubmit = async (data: RegisterFormValues) => {
         setErrorMsg('');
@@ -49,7 +52,7 @@ export const RegisterForm = () => {
             >
                 <TextField
                     id="register-email" 
-                    label='Email' 
+                    label={t('auth.email')} 
                     variant='outlined' 
                     {...register("email")} 
                     type="email"
@@ -61,7 +64,7 @@ export const RegisterForm = () => {
                 />
                 <TextField 
                     id="register-password" 
-                    label='Password' 
+                    label={t('auth.password')} 
                     variant='outlined' 
                     type="password" 
                     {...register("password")}
@@ -73,7 +76,7 @@ export const RegisterForm = () => {
                 />
                 <TextField 
                     id="register-confirm-password" 
-                    label='Confirm Password' 
+                    label={t('auth.confirmPassword')} 
                     variant='outlined' 
                     type="password" 
                     {...register("confirmPassword")}
@@ -84,7 +87,7 @@ export const RegisterForm = () => {
                     helperText={errors.confirmPassword?.message}
                 />
                 <Button variant="contained" disabled={isLoading} type="submit">
-                    {isLoading ? 'Регистрируем...' : 'Register'}
+                    {isLoading ? 'Регистрируем...' : t('auth.register')}
                 </Button>
                 {errorMsg && <Alert severity="error">{errorMsg}</Alert>}
             </Stack>

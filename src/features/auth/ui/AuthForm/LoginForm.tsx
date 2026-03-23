@@ -7,6 +7,7 @@ import { loginSchema } from "../../model/validation";
 import { useState } from "react";
 import { Button, Stack, TextField } from "@mui/material";
 import { adp } from "@/shared/lib/utils/adaptiveDesktop";
+import { useTranslation } from "react-i18next";
 
 
 export const LoginForm = () => {
@@ -15,6 +16,8 @@ export const LoginForm = () => {
     const [loginUser, { isLoading }] = useLoginMutation();
 
     const [errorMsg, setErrorMsg] = useState('');
+
+    const { t } = useTranslation();
 
     const { 
         register, 
@@ -43,7 +46,7 @@ export const LoginForm = () => {
             >
                 <TextField 
                     id="login-email" 
-                    label='Email' 
+                    label={t('auth.email')} 
                     variant='outlined' 
                     {...register("email")} 
                     type="email"
@@ -55,7 +58,7 @@ export const LoginForm = () => {
                 />
                 <TextField 
                     id="login-password" 
-                    label='Password' 
+                    label={t('auth.password')} 
                     variant='outlined' 
                     type="password" 
                     {...register("password")}
@@ -66,7 +69,7 @@ export const LoginForm = () => {
                     helperText={errors.password?.message}
                 />
                 <Button variant="contained" disabled={isLoading} type="submit">
-                    {isLoading ? 'Входим...' : 'Login'}
+                    {isLoading ? 'Входим...' : t('auth.login')}
                 </Button>
                 {errorMsg && <p style={{ color: 'red' }}>{errorMsg}</p>}
             </Stack>
