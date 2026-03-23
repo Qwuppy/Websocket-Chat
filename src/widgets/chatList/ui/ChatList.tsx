@@ -7,6 +7,9 @@ import { useEffect } from "react"
 import { useDispatch, useSelector } from "react-redux";
 import { ChatSearch } from "./ChatSearchComponent";
 import { supabase } from "@/shared/lib/server/supabaseClient";
+import { adp } from "@/shared/lib/utils/adaptiveDesktop";
+import LanguageSwitcher from "@/shared/ui/LanguageSwitcher/LanguageSwitcher";
+import { useTranslation } from "react-i18next";
 
 
 export const ChatList = () => { 
@@ -15,6 +18,8 @@ export const ChatList = () => {
     const activeChatId = useSelector((state: RootState) => state.chat.activeChatId);
 
     const { data: chats, isLoading } = useFetchChatsQuery();
+
+    const { t } = useTranslation();
 
     useEffect(() => {
         if (!currentUserEmail) return;
@@ -49,33 +54,52 @@ export const ChatList = () => {
 
     return (
         <Box sx={{
-            width: 300,
+            width: adp(400),
             height: '100vh',
-            bgcolor: '#2A2828',
+            bgcolor: '#262424',
             display: 'flex',
             flexDirection: 'column',
-            borderRight: '1px solid #3a3a3a',
+            borderRight: '1px solid rgba(73, 73, 73, 1)',
         }}>
             {/* Хедер */}
-            <Box sx={{ p: 2 }}>
-                <Typography variant="h6" color="white">Чаты</Typography>
-            </Box>
+            <Box
+                sx={{
+                    py: adp(10),
+                    px: adp(20),
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                }}
+            >
+                <Typography
+                    variant="h6"
+                    sx={{ color: '#d4d4d4ff' }}
+                >
+                    {t('chat.title')}
+                </Typography>
 
+                <LanguageSwitcher />
+            </Box>
             <ChatSearch onSuccess={() => {}} />
 
-            <Divider sx={{ bgcolor: '#3a3a3a' }} />
+            <Divider sx={{ bgcolor: 'rgba(73, 73, 73, 1)' }} />
 
             {/* Список чатов */}
-            <Box sx={{ flex: 1, overflowY: 'auto' }}>
+            <Box 
+            sx={{ 
+                flex: 1, 
+                overflowY: 'auto',
+            }}
+            >
                 {isLoading && (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-                    <CircularProgress />
+                    <Box sx={{ display: 'flex', justifyContent: 'center', mt: adp(4) }}>
+                        <CircularProgress />
                     </Box>
                 )}
 
                 {!isLoading && chats?.length === 0 && (
-                    <Typography color="grey.500" variant="body2" sx={{ textAlign: 'center', mt: 4 }}>
-                        Нет диалогов. Начните первый!
+                    <Typography color="grey.500" variant="body2" sx={{ textAlign: 'center', mt: adp(4) }}>
+                        {t('chat.noChats')}
                     </Typography>
                 )}
 
@@ -90,8 +114,8 @@ export const ChatList = () => {
                             selected={isActive}
                             onClick={() => handleSelectChat(chat)}
                             sx={{
-                                '&.Mui-selected': { bgcolor: '#3a3a3a' },
-                                '&:hover': { bgcolor: '#333' },
+                                '&.Mui-selected': { bgcolor: '#2e2b2bff' },
+                                '&:hover': { bgcolor: '#352f2fff' },
                             }}
                         >
                             <ListItemAvatar>
@@ -101,13 +125,13 @@ export const ChatList = () => {
                             </ListItemAvatar>
                             <ListItemText
                                 primary={
-                                    <Typography color="white" noWrap variant="body2">
+                                    <Typography color="#d4d4d4ff" noWrap variant="body2">
                                         {partnerEmail}
                                     </Typography>
                                 }
                                 secondary={
-                                    <Typography color="grey.500" noWrap variant="caption">
-                                        {chat.lastMessage?.content ?? 'Нет сообщений'}
+                                    <Typography color="#a8a8a8bd" noWrap variant="caption">
+                                        {chat.lastMessage?.content ?? t('chat.noMessages')}
                                     </Typography>
                                 }
                             />

@@ -1,0 +1,20 @@
+{
+    "auth": {
+        "login": "Login",
+        "register": "Register",
+        "email": "Enter your email...",
+        "password": "Enter your password...",
+        "confirmPassword": "Confirm your password...",
+        "noAccount": "Don't have an account? Register",
+        "hasAccount": "Already have an account? Log in with your password."
+    },
+    "chat": {
+        "title": "Your chats",
+        "search": "New conversation...",
+        "searchHelper": "Enter — find, Esc — cancel",
+        "noChats": "No dialogues. Be the first one!",
+        "chooseChat": "Choose a chat!",
+        "typeMessage": "Enter a message...",
+        "searchEmail": "Interlocutor's email..."
+    }
+}

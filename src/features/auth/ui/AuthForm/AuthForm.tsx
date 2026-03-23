@@ -4,6 +4,8 @@ import { RegisterForm } from "./RegisterForm";
 import { useRouter } from "next/navigation";
 import { Box, Button, Stack } from "@mui/material";
 import { adp } from "@/shared/lib/utils/adaptiveDesktop";
+import { useTranslation } from "react-i18next";
+import LanguageSwitcher from "@/shared/ui/LanguageSwitcher/LanguageSwitcher";
 
 type AuthMode = "login" | "register";
 
@@ -20,6 +22,8 @@ export const AuthForm = () => {
     useEffect(() => {
         router.prefetch("/chat")
     }, [])
+
+    const { t } = useTranslation();
 
     return (
         <Stack
@@ -57,7 +61,6 @@ export const AuthForm = () => {
                         color: '#d4d4d4ff',                      // при фокусе
                     },
                 },
-
             }}
         >
             {mode === "login" ? <LoginForm /> : <RegisterForm />}
@@ -75,10 +78,17 @@ export const AuthForm = () => {
             >
                 {
                     mode === "login"
-                    ? "No account? Register"
-                    : "Already have account? Login"
+                    ? t('auth.noAccount')
+                    : t('auth.hasAccount')
                 }
             </Button>
+            <Box
+                display='flex'
+                justifyContent='center'
+                alignItems='center'
+            >
+                <LanguageSwitcher />
+            </Box>
         </Stack>
     )
 
