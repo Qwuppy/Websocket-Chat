@@ -18,6 +18,7 @@ import { chatApi, useFindOrCreateChatMutation } from "@/entities/chat/api/chatAp
 import { setActiveChat } from "@/entities/chat/model/chatSlice";
 import { adp } from "@/shared/lib/utils/adaptiveDesktop";
 import { useTranslation } from "react-i18next";
+import { useTranslate, TranslateButton } from "@/features/translation";
 
 interface ChatWindowProps {
     targetEmail?: string; // email собеседника (можно заменить на динамический, если нужно)
@@ -40,6 +41,8 @@ export const ChatWindow = ({ targetEmail, chatId }: ChatWindowProps) => {
     const [sendMessage, {isLoading: isSending}] = useSendMessageMutation();
 
     const { t } = useTranslation();
+
+    const { translations, translate, loadingId } = useTranslate();
 
     const handleSendMessage = async () => {
         const trimmed = inputText.trim();
@@ -107,7 +110,7 @@ export const ChatWindow = ({ targetEmail, chatId }: ChatWindowProps) => {
                 backgroundColor: "#262424",
             }}
         >
-            {/* Список сообщений  */}
+            {/* Список сообщений */}
             <Box
                 ref={containerRef}
                 sx={{
@@ -120,7 +123,6 @@ export const ChatWindow = ({ targetEmail, chatId }: ChatWindowProps) => {
                 }}
             >
                 {messages.map((msg: Message) => {
-                    // Определяем позицию пузыря: своё — справа, чужое — слева
                     const isOwnMessage = currentUserEmail === msg.sender_email;
 
                     return (
@@ -128,9 +130,7 @@ export const ChatWindow = ({ targetEmail, chatId }: ChatWindowProps) => {
                             key={msg.id}
                             sx={{
                                 display: "flex",
-                                justifyContent: isOwnMessage
-                                    ? "flex-end"
-                                    : "flex-start",
+                                justifyContent: isOwnMessage ? "flex-end" : "flex-start",
                             }}
                         >
                             <Paper
@@ -149,27 +149,44 @@ export const ChatWindow = ({ targetEmail, chatId }: ChatWindowProps) => {
                                 <Typography variant="body1">
                                     {msg.content}
                                 </Typography>
-                                <Typography
-                                    variant="caption"
+
+                                <Box
                                     sx={{
-                                        display: "block",
-                                        textAlign: "right",
+                                        display: "flex",
+                                        justifyContent: "space-between",
+                                        alignItems: "flex-end",
                                         mt: adp(3),
-                                        opacity: 0.75,
                                     }}
                                 >
-                                    {new Date(msg.created_at).toLocaleTimeString(
-                                        [],
-                                        { hour: "2-digit", minute: "2-digit" }
-                                    )}
-                                </Typography>
+                                    <TranslateButton
+                                        messageId={msg.id}
+                                        content={msg.content}
+                                        isOwn={isOwnMessage}
+                                        translation={translations[msg.id]}
+                                        isLoading={loadingId === msg.id}
+                                        onTranslate={translate}
+                                    />
+                                    <Typography
+                                        variant="caption"
+                                        sx={{
+                                            display: "block",
+                                            textAlign: "right",
+                                            opacity: 0.75,
+                                        }}
+                                    >
+                                        {new Date(msg.created_at).toLocaleTimeString(
+                                            [],
+                                            { hour: "2-digit", minute: "2-digit" }
+                                        )}
+                                    </Typography>
+                                </Box>
                             </Paper>
                         </Box>
                     );
                 })}
             </Box>
 
-            {/* Поле ввода  */}
+            {/* Поле ввода */}
             <Box
                 sx={{
                     display: "flex",
@@ -200,19 +217,19 @@ export const ChatWindow = ({ targetEmail, chatId }: ChatWindowProps) => {
                             '&.Mui-focused fieldset': {
                                 borderColor: 'rgba(32, 88, 145, 1)',
                             },
-                            backgroundColor: '#262424',         // фон всегда
+                            backgroundColor: '#262424',
                             '&.Mui-focused': {
-                                backgroundColor: '#262424',     // фон при фокусе (когда пишешь)
+                                backgroundColor: '#262424',
                             },
-                            '& input:-webkit-autofill': {         //автозаполнение
-                                WebkitBoxShadow: '0 0 0 100px #262424 inset',  
-                                WebkitTextFillColor: '#d4d4d4ff',                  
+                            '& input:-webkit-autofill': {
+                                WebkitBoxShadow: '0 0 0 100px #262424 inset',
+                                WebkitTextFillColor: '#d4d4d4ff',
                             },
                         },
                         '& .MuiInputLabel-root': {
-                                color: '#bdbdbda9',      // обычное состояние
+                            color: '#bdbdbda9',
                             '&.Mui-focused': {
-                                color: '#d4d4d4ff',      // при фокусе
+                                color: '#d4d4d4ff',
                             },
                         },
                     }}
@@ -225,9 +242,7 @@ export const ChatWindow = ({ targetEmail, chatId }: ChatWindowProps) => {
                     {isSending ? (
                         <CircularProgress size={20} />
                     ) : (
-                        <SendIcon 
-                            sx={{ color: '#d4d4d485'}}
-                        />
+                        <SendIcon sx={{ color: '#d4d4d485' }} />
                     )}
                 </IconButton>
             </Box>
