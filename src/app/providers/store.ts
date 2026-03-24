@@ -4,6 +4,7 @@ import chatReducer from "@/entities/chat/model/chatSlice";
 import { authApi } from "@/features/auth/api/authApi";
 import { messagesApi } from "@/entities/messages/api/messagesApi";
 import { chatApi } from "@/entities/chat/api/chatApi"; 
+import { translationApi } from "@/features/translation/api/translationApi";
 
 
 export const store = configureStore({
@@ -13,12 +14,14 @@ export const store = configureStore({
     [authApi.reducerPath]: authApi.reducer,
     [messagesApi.reducerPath]: messagesApi.reducer,
     [chatApi.reducerPath]: chatApi.reducer, 
+    [translationApi.reducerPath]: translationApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(
       authApi.middleware,
       messagesApi.middleware,
       chatApi.middleware, 
+      translationApi.middleware,
     ),
 });
 
